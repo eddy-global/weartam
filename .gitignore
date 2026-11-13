@@ -1,1 +1,3 @@
-# No files ignored - all assets including video are tracked
+# Hero video — served from Cloudinary CDN, not the repo
+assets/images/*.mp4
+assets/images/*.MP4
