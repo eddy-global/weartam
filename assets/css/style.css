@@ -653,7 +653,7 @@ ul { list-style: none; }
 .product-img-3h { background: url('../images/Lily-set-purple-02.webp') center/cover no-repeat; }
 .product-img-4h { background: url('../images/kayla-suit-skirt-main.webp') center/cover no-repeat; }
 .product-img-5h { background: url('../images/Kayla-Suit-Set-Pants02.webp') center/cover no-repeat; }
-.product-img-6h { background: url('../images/black-dress-style.webp') center/cover no-repeat; }
+.product-img-6h { background: url('../images/lily-set-black-thumbnail02.webp') center/cover no-repeat; }
 
 .product-card:hover .product-img:not(.product-img-hover) { transform: scale(1.04); opacity: 0; }
 .product-card:hover .product-img-hover { opacity: 1; transform: scale(1.04); }
@@ -1028,7 +1028,7 @@ ul { list-style: none; }
   display: block;
 }
 
-.st-1 { background: url('../images/black-dress-style.webp') center/cover no-repeat; }
+.st-1 { background: url('../images/denim-style.webp') center/cover no-repeat; }
 .st-2 { background: url('../images/lily-set-black-thumbnail02.webp') center/cover no-repeat; }
 .st-3 { background: url('../images/becca-main.webp') center/cover no-repeat; }
 .st-4 { background: url('../images/lily-set-black-main.webp') center/cover no-repeat; }

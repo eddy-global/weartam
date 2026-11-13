@@ -239,7 +239,7 @@ const products = {
     category: 'dresses',
     description: 'From the Alpha Collection by wear.TAM. The Lily Set in classic black. The same elegant silhouette, in its most timeless form.',
     gradient: "url('assets/images/lily-set-black-main.webp') center/cover no-repeat",
-    gradientHover: "url('assets/images/black-dress-style.webp') center/cover no-repeat",
+    gradientHover: "url('assets/images/lily-set-black-thumbnail02.webp') center/cover no-repeat",
     extraImages: [
       "url('assets/images/Lily-set-twomodel.webp') center/cover no-repeat",
       "url('assets/images/lily-set-black-thumbnail.webp') center/cover no-repeat",
