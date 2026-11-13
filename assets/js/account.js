@@ -11,6 +11,16 @@ let currentUser = null
 
 /* ─── INIT ────────────────────────────────────────────── */
 async function initAccountPage() {
+  // Handle Supabase auth callback in URL hash (email confirmation, password reset)
+  // Must be done before getSession() so the session is established first
+  if (window.location.hash.includes('access_token') || window.location.hash.includes('type=recovery')) {
+    const { data, error } = await db.auth.getSession()
+    if (data?.session) {
+      // Clear the hash cleanly
+      history.replaceState(null, '', window.location.pathname)
+    }
+  }
+
   const { data: { session } } = await db.auth.getSession()
 
   if (!session?.user) {

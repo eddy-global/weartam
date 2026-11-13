@@ -244,7 +244,13 @@ function initAuthModal() {
       showToast('Welcome back to TAM!')
       closeModal()
     } catch (err) {
-      showAuthError('loginError', friendlyError(err.message))
+      if (err.message.includes('Email not confirmed')) {
+        // Store email so resend button works, then show confirm panel
+        if (signupForm) signupForm.dataset.lastEmail = email
+        showPanel('confirm')
+      } else {
+        showAuthError('loginError', friendlyError(err.message))
+      }
     } finally {
       setAuthLoading(btn, false)
     }
@@ -375,10 +381,13 @@ function clearAuthError(id) {
 }
 
 function friendlyError(msg) {
-  if (msg.includes('Invalid login'))      return 'Incorrect email or password.'
-  if (msg.includes('already registered')) return 'An account with this email already exists.'
-  if (msg.includes('Password should'))    return 'Password must be at least 6 characters.'
-  if (msg.includes('Unable to validate')) return 'Please enter a valid email address.'
+  if (msg.includes('Invalid login'))          return 'Incorrect email or password.'
+  if (msg.includes('Email not confirmed'))    return 'Please confirm your email first. Check your inbox.'
+  if (msg.includes('already registered'))     return 'An account with this email already exists. Try logging in.'
+  if (msg.includes('Password should'))        return 'Password must be at least 6 characters.'
+  if (msg.includes('Unable to validate'))     return 'Please enter a valid email address.'
+  if (msg.includes('rate limit'))             return 'Too many attempts. Please wait a moment and try again.'
+  if (msg.includes('User already registered'))return 'This email is already registered. Try logging in instead.'
   return msg
 }
 

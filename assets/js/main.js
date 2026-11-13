@@ -853,7 +853,7 @@ const cart = {
   if (!source) return
 
   function loadAndPlay() {
-    if (source.src) return // already loaded
+    if (source.getAttribute('src')) return // already loaded
     source.src = source.getAttribute('data-src')
     video.load()
     // play() returns a promise — catch rejection silently (mobile low-power mode etc.)
