@@ -165,8 +165,8 @@ const products = {
     priceRaw: 72500,
     category: 'sets',
     description: 'From the Alpha Collection by wear.TAM. A denim piece that redefines casual. Structured, polished, effortlessly cool. The bestseller of the collection.',
-    gradient: "url('assets/images/becca-main.PNG') center/cover no-repeat",
-    gradientHover: "url('assets/images/becca-main.PNG') center/cover no-repeat",
+    gradient: "url('assets/images/becca-main.webp') center/cover no-repeat",
+    gradientHover: "url('assets/images/becca-main.webp') center/cover no-repeat",
     extraImages: [],
     paymentLink: '#'
   },
@@ -177,13 +177,11 @@ const products = {
     priceRaw: 38000,
     category: 'dresses',
     description: 'From the Alpha Collection by wear.TAM. A red dress built for the woman who walks into a room and owns it instantly.',
-    gradient: "url('assets/images/red-dress-full.PNG') center/cover no-repeat",
-    gradientHover: "url('assets/images/red-dress-stylish.PNG') center/cover no-repeat",
+    gradient: "url('assets/images/red-dress-full.webp') center/cover no-repeat",
+    gradientHover: "url('assets/images/red-dress-stylish.webp') center/cover no-repeat",
     extraImages: [
-      "url('assets/images/cherry-dress-thumbnail.jpg') center/cover no-repeat",
-      "url('assets/images/cherry-dress-thumbnail02.jpg') center/cover no-repeat",
-      "url('assets/images/cherry-dress-thumbnail03.jpg') center/cover no-repeat",
-      "url('assets/images/cherry-dress-thumbnail04.jpg') center/cover no-repeat"
+      "url('assets/images/cherry-dress-thumbnail.webp') center/cover no-repeat",
+      "url('assets/images/cherry-dress-thumbnail02.webp') center/cover no-repeat"
     ],
     paymentLink: '#'
   },
@@ -194,14 +192,14 @@ const products = {
     priceRaw: 49000,
     category: 'dresses',
     description: 'From the Alpha Collection by wear.TAM. A striking set designed to make you unforgettable. Available in black and purple. Crafted with precision and intention.',
-    gradient: "url('assets/images/Lily-set-purple.jpg') center/cover no-repeat",
-    gradientHover: "url('assets/images/Lily-set-purple-02.jpg') center/cover no-repeat",
+    gradient: "url('assets/images/Lily-set-purple.webp') center/cover no-repeat",
+    gradientHover: "url('assets/images/Lily-set-purple-02.webp') center/cover no-repeat",
     extraImages: [
-      "url('assets/images/Lily-set-twomodel.jpg') center/cover no-repeat",
-      "url('assets/images/lily-thumbnail.jpg') center/cover no-repeat",
-      "url('assets/images/lily-thumbnail02.jpg') center/cover no-repeat",
-      "url('assets/images/lily-thumbnail03.jpg') center/cover no-repeat",
-      "url('assets/images/lily-thumbnail04.jpg') center/cover no-repeat"
+      "url('assets/images/Lily-set-twomodel.webp') center/cover no-repeat",
+      "url('assets/images/lily-thumbnail.webp') center/cover no-repeat",
+      "url('assets/images/lily-thumbnail02.webp') center/cover no-repeat",
+      "url('assets/images/lily-thumbnail03.webp') center/cover no-repeat",
+      "url('assets/images/lily-thumbnail04.webp') center/cover no-repeat"
     ],
     paymentLink: '#'
   },
@@ -212,8 +210,8 @@ const products = {
     priceRaw: 70000,
     category: 'sets',
     description: 'From the Alpha Collection by wear.TAM. A pink skirt suit set that commands a room. Feminine, bold, and completely TAM.',
-    gradient: "url('assets/images/kayla-suit-skirt-main.PNG') center/cover no-repeat",
-    gradientHover: "url('assets/images/kayla-suit-skirt-main.PNG') center/cover no-repeat",
+    gradient: "url('assets/images/kayla-suit-skirt-main.webp') center/cover no-repeat",
+    gradientHover: "url('assets/images/kayla-suit-skirt-main.webp') center/cover no-repeat",
     extraImages: [],
     paymentLink: '#'
   },
@@ -224,12 +222,12 @@ const products = {
     priceRaw: 69000,
     category: 'sets',
     description: 'From the Alpha Collection by wear.TAM. The Kayla Suit Set in pants. A cream silhouette that moves with quiet confidence. Timeless from every angle.',
-    gradient: "url('assets/images/kayla-suit-set-pants-main.PNG') center/cover no-repeat",
-    gradientHover: "url('assets/images/Kayla-Suit-Set-Pants02.PNG') center/cover no-repeat",
+    gradient: "url('assets/images/kayla-suit-set-pants-main.webp') center/cover no-repeat",
+    gradientHover: "url('assets/images/Kayla-Suit-Set-Pants02.webp') center/cover no-repeat",
     extraImages: [
-      "url('assets/images/Kayla-Suit-Set-Pants.PNG') center/cover no-repeat",
-      "url('assets/images/kayla-suit-pants-thumbnail.jpg') center/cover no-repeat",
-      "url('assets/images/kayla-suit-pants-thumbnail02.jpg') center/cover no-repeat"
+      "url('assets/images/Kayla-Suit-Set-Pants.webp') center/cover no-repeat",
+      "url('assets/images/kayla-suit-pants-thumbnail.webp') center/cover no-repeat",
+      "url('assets/images/kayla-suit-pants-thumbnail02.webp') center/cover no-repeat"
     ],
     paymentLink: '#'
   },
@@ -240,12 +238,12 @@ const products = {
     priceRaw: 49000,
     category: 'dresses',
     description: 'From the Alpha Collection by wear.TAM. The Lily Set in classic black. The same elegant silhouette, in its most timeless form.',
-    gradient: "url('assets/images/lily-set-black-main.jpeg') center/cover no-repeat",
-    gradientHover: "url('assets/images/black-dress-style.PNG') center/cover no-repeat",
+    gradient: "url('assets/images/lily-set-black-main.webp') center/cover no-repeat",
+    gradientHover: "url('assets/images/black-dress-style.webp') center/cover no-repeat",
     extraImages: [
-      "url('assets/images/Lily-set-twomodel.jpg') center/cover no-repeat",
-      "url('assets/images/lily-set-black-thumbnail.jpg') center/cover no-repeat",
-      "url('assets/images/lily-set-black-thumbnail02.jpg') center/cover no-repeat"
+      "url('assets/images/Lily-set-twomodel.webp') center/cover no-repeat",
+      "url('assets/images/lily-set-black-thumbnail.webp') center/cover no-repeat",
+      "url('assets/images/lily-set-black-thumbnail02.webp') center/cover no-repeat"
     ],
     paymentLink: '#'
   }
@@ -266,7 +264,17 @@ const cart = {
     if (existingIndex > -1) {
       this.items[existingIndex].qty += 1;
     } else {
-      this.items.push({ ...product, size, qty: 1 });
+      // Only store what's needed — strip large image strings from cart storage
+      this.items.push({
+        id:       product.id,
+        name:     product.name,
+        price:    product.price,
+        priceRaw: product.priceRaw,
+        category: product.category,
+        gradient: product.gradient,
+        size,
+        qty: 1
+      });
     }
 
     this.save();
@@ -809,19 +817,48 @@ const cart = {
   // Parallax disabled — hero uses video background
 })();
 
-/* ─── LAZY LOAD HERO VIDEO ───────────────────────────── */
-(function initLazyVideo() {
+/* ─── HERO VIDEO LOADER ──────────────────────────────── */
+(function initHeroVideo() {
   const video = document.getElementById('heroVideo')
   if (!video) return
 
-  window.addEventListener('load', () => {
-    const source = video.querySelector('source[data-src]')
-    if (source) {
-      source.src = source.dataset.src
-      video.load()
+  const source = video.querySelector('source[data-src]')
+  if (!source) return
+
+  function loadAndPlay() {
+    if (source.src) return // already loaded
+    source.src = source.getAttribute('data-src')
+    video.load()
+    // play() returns a promise — catch rejection silently (mobile low-power mode etc.)
+    const playPromise = video.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay blocked — video stays as static poster frame, which is fine
+      })
+    }
+  }
+
+  // On desktop/fast connections: load immediately on DOMContentLoaded
+  // On mobile: browsers require a user gesture OR the page to be fully idle
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadAndPlay)
+  } else {
+    loadAndPlay()
+  }
+
+  // Also try again after full page load (catches slow mobile connections)
+  window.addEventListener('load', loadAndPlay, { once: true })
+
+  // Retry on first user interaction (covers strict mobile autoplay policies)
+  const retryOnInteraction = () => {
+    if (video.paused) {
       video.play().catch(() => {})
     }
-  })
+    document.removeEventListener('touchstart', retryOnInteraction)
+    document.removeEventListener('click', retryOnInteraction)
+  }
+  document.addEventListener('touchstart', retryOnInteraction, { passive: true })
+  document.addEventListener('click', retryOnInteraction, { once: true })
 })()
 
 /* ─── TOAST HELPER ───────────────────────────────────── */
