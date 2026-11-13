@@ -10,25 +10,21 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 let currentUser = null
 
 /* ─── INIT ────────────────────────────────────────────── */
-// Returns true when the account page is shown, false when redirecting away.
 async function initAccountPage() {
   const hash = window.location.hash
-  const hasAuthHash = hash.includes('access_token') || hash.includes('type=recovery')
 
-  if (hasAuthHash) {
-    // Hash-based flow (email confirmation / password recovery):
-    // Do NOT call getSession()/redirect immediately. The URL hash is parsed
-    // asynchronously by Supabase's detectSessionInUrl; a synchronous getSession()
-    // would see no session yet and bounce to '/', discarding a valid token.
-    // Instead, wait for the first auth event carrying a session.
-    return await waitForAuthFromHash()
+  // If there's an auth hash (email confirm / password reset link),
+  // wait for Supabase to process it before checking session
+  if (hash.includes('access_token') || hash.includes('type=recovery')) {
+    // Give Supabase up to 3 seconds to parse the hash into a session
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    // Clear the hash so it doesn't interfere
+    history.replaceState(null, '', window.location.pathname)
   }
 
-  // No hash — synchronous guard is safe (session is already in storage or absent)
-  const { data: { session } } = await db.auth.getSession()
+  const { data: { session }, error } = await db.auth.getSession()
 
-  if (!session?.user) {
-    // Not logged in — redirect to home
+  if (error || !session?.user) {
     window.location.href = '/'
     return false
   }
@@ -40,52 +36,6 @@ async function initAccountPage() {
   loadOrders()
   updateNavUser()
   return true
-}
-
-// Wait for detectSessionInUrl to process the confirmation/recovery hash, then
-// show the account (or bounce home if the token is invalid/expired).
-function waitForAuthFromHash() {
-  return new Promise((resolve) => {
-    let settled = false
-    let listener
-    let timer
-
-    const done = (session) => {
-      if (settled) return
-      settled = true
-      clearTimeout(timer)
-      if (listener?.subscription) listener.subscription.unsubscribe()
-
-      if (session?.user) {
-        // Session established from the hash — clear it and show account
-        history.replaceState(null, '', window.location.pathname)
-        currentUser = session.user
-        showAccountContent()
-        loadProfile()
-        loadMeasurements()
-        loadOrders()
-        updateNavUser()
-        resolve(true)
-      } else {
-        // No valid token — bounce to home
-        window.location.href = '/'
-        resolve(false)
-      }
-    }
-
-    const { data } = db.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') { done(null); return }
-      if (session?.user) { done(session) }
-    })
-    listener = data
-
-    // Safety net: if no auth event arrives (e.g. token already parsed before
-    // subscription or an unparseable hash), fall back to a getSession() check.
-    timer = setTimeout(() => {
-      if (settled) return
-      db.auth.getSession().then(({ data: { session } }) => done(session))
-    }, 8000)
-  })
 }
 
 function showAccountContent() {
