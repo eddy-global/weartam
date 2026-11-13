@@ -38,7 +38,9 @@ async function signUp(fullName, phone, email, password) {
     email,
     password,
     options: {
-      data: { full_name: fullName, phone }
+      data: { full_name: fullName, phone },
+      // Land on /account after the user clicks the confirmation link
+      emailRedirectTo: SITE_URL + '/account'
     }
   })
 
@@ -72,7 +74,7 @@ async function signOut() {
 /* ─── PASSWORD RESET ──────────────────────────────────── */
 async function sendPasswordReset(email) {
   const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://weartam.com/account'
+    redirectTo: SITE_URL + '/account'
   })
   if (error) throw error
 }
@@ -84,10 +86,12 @@ function onSignedIn(user) {
   loadUserMeasurements()
   // Welcome back toast — only on landing page, only once per session
   if (!sessionStorage.getItem('tam_welcomed') && window.location.pathname.includes('index')) {
+    // Set the flag immediately (before the timeout) so two rapid onAuthStateChange
+    // fires (INITIAL_SESSION restore + change listener) can't both pass the guard
+    sessionStorage.setItem('tam_welcomed', '1')
     const name = user.user_metadata?.full_name?.split(' ')[0] || ''
     setTimeout(() => {
       showToast('Welcome back' + (name ? ', ' + name : '') + ' 👋')
-      sessionStorage.setItem('tam_welcomed', '1')
     }, 1500)
   }
 }
@@ -414,7 +418,7 @@ function friendlyError(msg) {
 
 /* ─── INIT ────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  initAuth()
+  initAuth().catch(err => console.error('Auth init failed:', err))
   initAuthModal()
   initPasswordToggles()
 })

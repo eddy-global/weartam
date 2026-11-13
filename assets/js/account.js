@@ -10,23 +10,27 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 let currentUser = null
 
 /* ─── INIT ────────────────────────────────────────────── */
+// Returns true when the account page is shown, false when redirecting away.
 async function initAccountPage() {
-  // Handle Supabase auth callback in URL hash (email confirmation, password reset)
-  // Must be done before getSession() so the session is established first
-  if (window.location.hash.includes('access_token') || window.location.hash.includes('type=recovery')) {
-    const { data, error } = await db.auth.getSession()
-    if (data?.session) {
-      // Clear the hash cleanly
-      history.replaceState(null, '', window.location.pathname)
-    }
+  const hash = window.location.hash
+  const hasAuthHash = hash.includes('access_token') || hash.includes('type=recovery')
+
+  if (hasAuthHash) {
+    // Hash-based flow (email confirmation / password recovery):
+    // Do NOT call getSession()/redirect immediately. The URL hash is parsed
+    // asynchronously by Supabase's detectSessionInUrl; a synchronous getSession()
+    // would see no session yet and bounce to '/', discarding a valid token.
+    // Instead, wait for the first auth event carrying a session.
+    return await waitForAuthFromHash()
   }
 
+  // No hash — synchronous guard is safe (session is already in storage or absent)
   const { data: { session } } = await db.auth.getSession()
 
   if (!session?.user) {
     // Not logged in — redirect to home
     window.location.href = '/'
-    return
+    return false
   }
 
   currentUser = session.user
@@ -35,6 +39,53 @@ async function initAccountPage() {
   loadMeasurements()
   loadOrders()
   updateNavUser()
+  return true
+}
+
+// Wait for detectSessionInUrl to process the confirmation/recovery hash, then
+// show the account (or bounce home if the token is invalid/expired).
+function waitForAuthFromHash() {
+  return new Promise((resolve) => {
+    let settled = false
+    let listener
+    let timer
+
+    const done = (session) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      if (listener?.subscription) listener.subscription.unsubscribe()
+
+      if (session?.user) {
+        // Session established from the hash — clear it and show account
+        history.replaceState(null, '', window.location.pathname)
+        currentUser = session.user
+        showAccountContent()
+        loadProfile()
+        loadMeasurements()
+        loadOrders()
+        updateNavUser()
+        resolve(true)
+      } else {
+        // No valid token — bounce to home
+        window.location.href = '/'
+        resolve(false)
+      }
+    }
+
+    const { data } = db.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') { done(null); return }
+      if (session?.user) { done(session) }
+    })
+    listener = data
+
+    // Safety net: if no auth event arrives (e.g. token already parsed before
+    // subscription or an unparseable hash), fall back to a getSession() check.
+    timer = setTimeout(() => {
+      if (settled) return
+      db.auth.getSession().then(({ data: { session } }) => done(session))
+    }, 8000)
+  })
 }
 
 function showAccountContent() {
@@ -293,6 +344,10 @@ function initMeasurementsForm() {
 }
 
 /* ─── ORDERS ──────────────────────────────────────────── */
+// NOTE: Order status is managed by the TAM vendor directly in the Supabase
+// dashboard (orders.status field: pending/confirmed/shipped/delivered/cancelled)
+// until a dedicated admin panel exists. The orders tab polls every 60s so a
+// status update is reflected without a page reload.
 async function loadOrders() {
   const { data, error } = await db
     .from('orders')
@@ -302,6 +357,10 @@ async function loadOrders() {
 
   const list  = document.getElementById('ordersList')
   const empty = document.getElementById('ordersEmpty')
+
+  // Clear any previously rendered cards (keep the empty-state placeholder)
+  // so the 60s auto-refresh doesn't stack duplicate cards.
+  list?.querySelectorAll('.order-card').forEach(c => c.remove())
 
   if (error || !data || data.length === 0) {
     if (empty) empty.style.display = ''
@@ -314,24 +373,41 @@ async function loadOrders() {
     const card = document.createElement('div')
     card.className = 'order-card'
 
-    const items = Array.isArray(order.items)
-      ? order.items.map(i => i.name).join(', ')
-      : 'Order items'
+    // Items list with quantities and sizes
+    let itemsHtml
+    if (Array.isArray(order.items) && order.items.length) {
+      itemsHtml = order.items.map(i => {
+        const name  = escapeHtml(i.name || 'TAM Product')
+        const qty   = i.qty || 1
+        const size  = i.size ? escapeHtml(String(i.size)) : ''
+        return `<div class="order-item-line">
+          <span class="order-item-name">${name}</span>
+          <span class="order-item-meta">×${qty}${size ? ' · Size: ' + size : ''}</span>
+        </div>`
+      }).join('')
+    } else {
+      itemsHtml = '<div class="order-item-line"><span class="order-item-name">Order items</span></div>'
+    }
 
-    const date = new Date(order.created_at).toLocaleDateString('en-NG', {
+    const date    = new Date(order.created_at).toLocaleDateString('en-NG', {
       day: 'numeric', month: 'long', year: 'numeric'
     })
-
-    const shortId = order.id.split('-')[0].toUpperCase()
+    const shortId = String(order.id).split('-')[0].toUpperCase()
+    const status  = escapeHtml(order.status || 'pending')
+    const waText  = encodeURIComponent(`Hi TAM, I have a question about order #${shortId}`)
+    const waLink  = `https://wa.me/2348143631189?text=${waText}`
 
     card.innerHTML = `
       <div class="order-card-header">
         <span class="order-id">Order #${escapeHtml(shortId)}</span>
         <span class="order-date">${escapeHtml(date)}</span>
-        <span class="order-status ${escapeHtml(order.status)}">${escapeHtml(order.status)}</span>
+        <span class="order-status ${status}">${status}</span>
       </div>
-      <p class="order-items">${escapeHtml(items)}</p>
+      <div class="order-items-list">${itemsHtml}</div>
       <p class="order-total">Total: ₦${Number(order.total).toLocaleString('en-NG')}</p>
+      <a class="order-whatsapp" href="${waLink}" target="_blank" rel="noopener">
+        <i class="fab fa-whatsapp"></i> Questions about this order? Chat with us
+      </a>
     `
     list.appendChild(card)
   })
@@ -340,7 +416,12 @@ async function loadOrders() {
 /* ─── SIGN OUT ────────────────────────────────────────── */
 function initSignOut() {
   document.getElementById('signOutBtn')?.addEventListener('click', async () => {
-    await db.auth.signOut()
+    try {
+      await db.auth.signOut()
+    } catch (err) {
+      console.error('Sign out failed:', err)
+    }
+    // Redirect either way — onAuthStateChange also fires SIGNED_OUT
     window.location.href = '/'
   })
 }
@@ -360,6 +441,67 @@ function initMobileNav() {
       mobileMenu?.classList.remove('open')
       hamburger?.classList.remove('open')
     })
+  })
+}
+
+/* ─── ACCOUNT NAV BUTTON (Fix E) ─────────────────────── */
+function initAccountNav() {
+  const btn = document.getElementById('authNavBtn')
+  btn?.addEventListener('click', () => {
+    // Already on the account page — return the user to the top
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+}
+
+/* ─── DELETE ACCOUNT (Fix C) ─────────────────────────── */
+function initDeleteAccount() {
+  const confirmInput = document.getElementById('deleteConfirmText')
+  const deleteBtn   = document.getElementById('deleteAccountBtn')
+  if (!confirmInput || !deleteBtn) return
+
+  // Enable the button only once the user has typed DELETE
+  confirmInput.addEventListener('input', () => {
+    deleteBtn.disabled = confirmInput.value.trim() !== 'DELETE'
+  })
+
+  deleteBtn.addEventListener('click', async () => {
+    if (confirmInput.value.trim() !== 'DELETE') return
+    deleteBtn.disabled = true
+    deleteBtn.textContent = 'Deleting...'
+    clearMsg('deleteAccountMsg')
+
+    try {
+      const { data: { session } } = await db.auth.getSession()
+      const token = session?.access_token
+      if (!token) {
+        showMsg('deleteAccountMsg', 'Please sign in again, then retry.', 'error')
+        deleteBtn.disabled = false
+        deleteBtn.textContent = 'Delete My Account'
+        return
+      }
+
+      const res = await fetch('/.netlify/functions/delete-account', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type':  'application/json'
+        }
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Delete failed, please try again.')
+      }
+
+      // Deleted server-side — clear the local session and leave
+      try { await db.auth.signOut() } catch (e) { /* user is already gone */ }
+      showToast('Your account has been deleted.')
+      window.location.href = '/'
+    } catch (err) {
+      showMsg('deleteAccountMsg', 'Could not delete account: ' + (err.message || 'please try again.'), 'error')
+      deleteBtn.disabled = false
+      deleteBtn.textContent = 'Delete My Account'
+    }
   })
 }
 
@@ -412,7 +554,8 @@ function showToast(message, duration = 3000) {
 
 /* ─── BOOT ────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  initAccountPage().then(() => {
+  initAccountPage().then(shown => {
+    if (!shown) return // redirected away, don't init UI
     initTabs()
     initAvatarUpload()
     initProfileForm()
@@ -420,5 +563,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initMeasurementsForm()
     initSignOut()
     initMobileNav()
-  })
+    initAccountNav()
+    initDeleteAccount()
+    // Auto-refresh orders every 60 seconds so status updates show without reload
+    setInterval(loadOrders, 60000)
+  }).catch(err => console.error('Account init error:', err))
 })

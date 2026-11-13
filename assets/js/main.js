@@ -326,6 +326,10 @@ const cart = {
     const drawerCount = document.getElementById('cartDrawerCount');
     if (drawerCount) drawerCount.textContent = `(${count})`;
 
+    // Show/hide clear all button
+    const clearBtn = document.getElementById('cartClearBtn');
+    if (clearBtn) clearBtn.style.display = count > 0 ? 'inline-block' : 'none';
+
     // Cart items list
     const cartItemsEl = document.getElementById('cartItems');
     const cartEmptyEl = document.getElementById('cartEmpty');
@@ -399,8 +403,17 @@ const cart = {
   cartBtn?.addEventListener('click', openCart);
   cartClose?.addEventListener('click', closeCart);
   cartOverlay?.addEventListener('click', closeCart);
-
   cartShopLink?.addEventListener('click', closeCart);
+
+  // Clear all items from bag
+  const cartClearBtn = document.getElementById('cartClearBtn');
+  cartClearBtn?.addEventListener('click', () => {
+    if (!cart.items.length) return;
+    cart.items = [];
+    cart.save();
+    cart.updateUI();
+    showToast('Your bag has been cleared.');
+  });
 
   // Remove items from drawer
   cartItemsEl?.addEventListener('click', e => {

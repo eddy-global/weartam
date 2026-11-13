@@ -418,3 +418,83 @@
 @media (max-width: 400px) {
   .account-nav-item { min-width: 60px; padding: 10px 8px; }
 }
+
+/* ─── ORDER STATUS BADGES ─────────────────────────────── */
+.order-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.order-status.pending    { background: rgba(197,171,128,0.18); color: #9a7c3f; border: 1px solid rgba(197,171,128,0.4); }
+.order-status.confirmed  { background: rgba(37,99,235,0.1);   color: #1d4ed8; border: 1px solid rgba(37,99,235,0.25); }
+.order-status.shipped    { background: rgba(109,40,217,0.1);  color: #6d28d9; border: 1px solid rgba(109,40,217,0.25); }
+.order-status.delivered  { background: rgba(22,163,74,0.1);   color: #15803d; border: 1px solid rgba(22,163,74,0.25); }
+.order-status.cancelled  { background: rgba(220,38,38,0.1);   color: #b91c1c; border: 1px solid rgba(220,38,38,0.25); }
+
+/* ─── ORDER CARD ──────────────────────────────────────── */
+.order-card {
+  background: #fff;
+  border: 1px solid var(--grey-light);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.order-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.order-id   { font-weight: 600; font-size: 0.85rem; color: var(--black); }
+.order-date { font-size: 0.78rem; color: var(--grey-soft); margin-left: auto; }
+.order-items-list { margin-bottom: 10px; }
+.order-item-line  { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--grey-light); }
+.order-item-line:last-child { border-bottom: none; }
+.order-item-name  { font-size: 0.88rem; color: var(--black); font-weight: 500; }
+.order-item-meta  { font-size: 0.75rem; color: var(--grey-soft); white-space: nowrap; }
+.order-total      { font-weight: 600; font-size: 0.9rem; color: var(--black); margin: 10px 0 12px; }
+.order-whatsapp   {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.75rem; color: #25D366; font-weight: 500;
+  text-decoration: none; transition: opacity 0.2s;
+}
+.order-whatsapp:hover { opacity: 0.75; }
+.order-whatsapp i { font-size: 0.95rem; }
+
+/* ─── DANGER ZONE ─────────────────────────────────────── */
+.delete-account-zone {
+  background: rgba(220,38,38,0.04);
+  border: 1px solid rgba(220,38,38,0.2);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-top: 8px;
+}
+.delete-account-warning {
+  font-size: 0.88rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.btn-danger {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 28px;
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  margin-top: 12px;
+}
+.btn-danger:hover:not(:disabled) { background: #96281b; }
+.btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+

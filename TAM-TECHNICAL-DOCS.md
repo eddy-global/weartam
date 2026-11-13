@@ -1,484 +1,413 @@
 ﻿# wear.TAM — Technical Documentation
 **The Alisa Musa | Put Together Every Day**
 
-> This document contains the full technical overview of the wear.TAM website — what has been built, how it works, what is planned, and how to continue development. Any developer or AI picking this up should read this document in full before touching the code.
+> Written for two audiences: the next developer taking over this project, and the business owner who wants to understand how everything works without needing to read code. If you are a developer, read everything. If you are the business owner, Sections 1–5 are written for you.
+
+Last updated: July 2026
 
 ---
 
-## 1. Project Overview
+## Section 1 — What is this website?
 
-| Field | Detail |
+wear.TAM is an online fashion store for The Alisa Musa brand, based in Abuja, Nigeria.
+
+The website lets customers:
+- Browse the Alpha Collection of clothing
+- View each product with photos, descriptions, and pricing
+- Add items to a bag and check out with their card, bank transfer, or USSD
+- Create an account to save their measurements, delivery address, and view past orders
+- Shop as a guest without creating an account
+- Contact the brand via WhatsApp, Instagram, phone, or the contact form
+- Sign up for the newsletter
+
+The site is live at **weartam.com**.
+
+---
+
+## Section 2 — The tools and services keeping the site running
+
+Every external service the site depends on is listed here. If any of these change, the developer will need to update the relevant code.
+
+---
+
+### 2.1 Netlify — Website Hosting
+
+**What it does:** Netlify is where the website files live and are served from. When a code change is pushed to GitHub, Netlify automatically deploys it to the live site within about 30 seconds. It also handles the SSL certificate (the padlock in the browser) and enforces HTTPS.
+
+**Account:** eddy-global Netlify account
+**Live URL:** weartam.netlify.app (also accessible at weartam.com via DNS)
+**GitHub repo:** github.com/eddy-global/weartam
+**How deployment works:** Push code to the `main` branch on GitHub → Netlify detects the change → rebuilds and deploys automatically. No manual steps needed.
+**Config file:** `netlify.toml` in the project root — handles security headers, HTTPS redirects, and clean URL rules (so the address bar shows `/account` instead of `/account.html`).
+
+---
+
+### 2.2 Spaceship — Domain Registrar
+
+**What it does:** Spaceship is where the domain `weartam.com` was purchased and is managed. The DNS records there point the domain to Netlify.
+
+**Key DNS records set up:**
+- `@` (root) → `apex-loadbalancer.netlify.com` (points weartam.com to Netlify)
+- `www` → `weartam.netlify.app` (makes www.weartam.com work)
+- `resend._domainkey` → Resend DKIM record (proves emails from weartam.com are legitimate)
+- `rsend` and `send` → Resend SPF records (email authentication)
+
+**Important:** Do not delete any of these DNS records. Deleting the `@` or `www` records will take the site down. Deleting the Resend records will break email delivery.
+
+---
+
+### 2.3 Supabase — Database and User Accounts
+
+**What it does:** Supabase is the backend database. It stores:
+- User accounts (email, password — stored securely, passwords are never readable)
+- User profiles (name, phone number, delivery address)
+- Body measurements saved by users
+- Every order placed on the site
+
+**Project URL:** https://kaxhvzuzksntrlobktqi.supabase.co
+**Dashboard:** supabase.com → TechByEdwina's Org → weartam project
+**Keys (in `assets/js/config.js`):**
+- `SUPABASE_URL` — the project address
+- `SUPABASE_ANON_KEY` — the public key, safe to be in the frontend code. It only works within the security rules set up in Supabase.
+
+**Tables in the database:**
+
+| Table | What it stores |
 |---|---|
-| Brand Name | wear.TAM (The Alisa Musa) |
-| Tagline | Put Together Every Day |
-| Type | Fashion e-commerce website |
-| Stage | MVP — live on Netlify |
-| Started | October 2026 |
-| Location | Abuja, Nigeria |
+| `profiles` | User's name, phone, delivery address |
+| `measurements` | Saved body measurements (bust, waist, hips, etc.) |
+| `orders` | Every order: customer details, items, total, Paystack reference, status |
+| `products` | Exists but not used yet — products are currently hardcoded in the JS |
 
-### Brand Identity
-- **Logo style:** Script "wear." + bold serif "TAM" — rendered in CSS using Google Fonts (no image file yet; a transparent PNG version of the logo is needed)
-- **Colour Palette (Palette 1 — Timeless Luxury):**
-  - Pure Black: `#000000`
-  - Off-White Bone: `#F5F5F0`
-  - Charcoal Grey: `#2B2B2B`
-  - Champagne Gold: `#C5AB80`
-- **Typography:**
-  - Headings: Cormorant Garamond (serif, editorial)
-  - Body: DM Sans (clean geometric sans-serif)
-  - Script accent: Dancing Script (used in logo "wear.")
-- **Design direction:** Editorial luxury meets premium streetwear — minimal, intentional, fashion-forward
+**Row Level Security (RLS):** Each user can only see their own data. A logged-in user cannot see another user's orders or measurements. This is enforced by Supabase, not just the frontend code.
+
+**Email confirmation:** When someone signs up, Supabase sends them a confirmation email. They must click the link before they can log in. This is turned on under Authentication → Providers → Email in the Supabase dashboard.
 
 ---
 
-## 2. Current Tech Stack
+### 2.4 Resend — Email Delivery
 
-| Layer | Technology |
-|---|---|
-| Frontend | Pure HTML5, CSS3, Vanilla JavaScript (ES6+) |
-| Fonts | Google Fonts (CDN) |
-| Icons | Font Awesome 6.5.0 (CDN) |
-| Hosting | Netlify (static site deployment) |
-| Backend | None yet — planned with Supabase |
-| Database | None yet — planned with Supabase |
-| Payments | Paystack (payment link — placeholder, not yet wired) |
-| Version control | Git |
+**What it does:** Resend is the service that actually sends emails from `hello@weartam.com`. Without it, Supabase's built-in email sender was limited to 2 emails per hour and often went to spam. Resend allows 3,000 emails per month on the free tier.
 
-**No frameworks. No build tools. No npm.** The site is three files and runs directly in any browser.
+**Account:** charisglobaltech Resend account
+**Domain verified:** weartam.com (DKIM and SPF records added to Spaceship DNS)
+**Connected to:** Supabase → Authentication → Emails → SMTP Settings
+**SMTP settings in Supabase:**
+- Host: smtp.resend.com
+- Port: 465
+- Username: resend
+- Password: [Resend API key — stored only in Supabase, never in the codebase]
 
----
+**What emails it sends:**
+1. Email confirmation when someone creates an account
+2. Password reset link when someone requests it
 
-## 3. File Structure
-
-```
-thealisamusa/
-├── index.html                  # Single page — entire website
-├── TAM-TECHNICAL-DOCS.md       # This document
-└── assets/
-    ├── css/
-    │   └── style.css           # All styles (~750 lines)
-    ├── js/
-    │   └── main.js             # All JavaScript (~450 lines)
-    └── images/
-        ├── product-trousers-1.jpg.jpg   # Close-up floor shot (trousers + heels)
-        ├── product-trousers-2.jpg.jpg   # Mirror selfie (full outfit)
-        ├── TAM logo.jpeg                # Logo doc image (NOT used — see note)
-        └── TAM-video.mp4               # Hero section background video
-```
-
-### Note on the logo file
-`TAM logo.jpeg` contains the logo on a white document/paper background. It cannot be used directly as a web logo because of the background. The brand needs a **transparent PNG or SVG export** of the logo artwork. Until then, the CSS text logo (`wear.TAM`) is used in the nav and footer.
+**Email templates:** Customised with the wear.TAM brand (black header, gold logo, bone footer) — set in Supabase → Authentication → Emails → Templates.
 
 ---
 
-## 4. Site Architecture
+### 2.5 Paystack — Payments
 
-The site is a **single-page application (SPA-style)** — one `index.html` with all sections stacked vertically. Navigation uses smooth anchor scroll. No page reloads.
+**What it does:** Paystack handles all payments on the site. When a customer clicks "Pay with Paystack", a Paystack popup appears where they can pay by card, bank transfer, USSD, or mobile money. The money goes directly to the TAM Paystack account.
 
-### Sections in order
+**Public key (in `assets/js/config.js`):** `pk_live_41692022ffbef16159ef6fe1f8eac590709a79da`
+This key is safe to be in the frontend code — it can only initiate payments, not access funds.
+**The secret key** lives only in the Paystack dashboard and must never be put in the website code.
+**Currency:** Nigerian Naira (NGN)
+**Dashboard:** paystack.com — log in to see all transactions
 
-| Section | ID | Description |
+**How a payment works (step by step):**
+1. Customer fills in their details in the checkout form
+2. Clicks "Pay with Paystack"
+3. Paystack popup opens in the same tab
+4. Customer pays
+5. Paystack calls the `callback` function with a payment reference (e.g. `T123456789`)
+6. The site saves the order to Supabase with that reference
+7. An order notification email is sent to `hello@weartam.com` via Formspree
+8. The customer sees a success screen with their order reference and a WhatsApp button
+
+**Important technical note:** The Paystack popup must be triggered directly by a button click (a user action). It cannot be opened inside an `async` function that awaited something first, because browsers block popups that aren't directly triggered by the user. This is why the checkout form submit handler is kept synchronous.
+
+---
+
+### 2.6 Formspree — Contact and Order Emails
+
+**What it does:** Formspree receives two types of form submissions and forwards them as emails to `hello@weartam.com`:
+1. Messages from the "Let's Talk" contact form at the bottom of the homepage
+2. Full order details after every successful Paystack payment
+
+**Endpoint:** `https://formspree.io/f/xzerbdbl`
+**Where it appears in code:** `assets/js/main.js` (contact form) and `assets/js/checkout.js` (order notification)
+**Free tier:** 50 submissions per month. If the store gets busy, upgrade the Formspree plan.
+
+**What the order notification email contains:**
+- Payment reference from Paystack
+- Customer name, email, phone number
+- Delivery address
+- Size or custom measurements
+- List of items ordered with quantities
+- Order total
+- Any notes the customer added
+
+---
+
+### 2.7 Google Apps Script + Google Sheets — Newsletter
+
+**What it does:** When someone enters their email in the "Stay in the Loop" newsletter section and clicks Subscribe, their email address is saved to a Google Sheet called **TAM Newsletter Subscribers**.
+
+**Google Apps Script URL (in `assets/js/main.js`):**
+`https://script.google.com/macros/s/AKfycbzaeCWndVSE7CZY8uSZJq1lKxI80M8Iwe_jcMkSAzU3xw2JTgLw9l6f8lLErEQ75eEO/exec`
+
+**How it works:**
+1. Customer types their email and clicks Subscribe
+2. The site sends a POST request to the Google Apps Script URL
+3. The script receives the email and appends it as a new row in the Google Sheet
+4. The subscriber sees a "You're on the list" toast notification
+
+**Note:** Because of browser security rules, the site uses `mode: 'no-cors'` for this request, which means it cannot read the response. If there's a network error, the site shows a generic error toast. If there's a problem with the script itself, the email might silently fail to save. Check the Google Sheet periodically to confirm emails are coming through.
+
+**To access the Sheet:** Log in to the Google account that owns the Apps Script → Google Sheets → TAM Newsletter Subscribers.
+
+---
+
+### 2.8 Cloudinary — Video CDN
+
+**What it does:** The hero video (the background video on the homepage) is hosted on Cloudinary, not in the GitHub repository. This is because video files are large and would slow down the site and eat up GitHub storage.
+
+**Account:** edwinaeneabah@gmail.com Cloudinary account
+**Cloud name:** lggmwg89
+**Video URL:** `https://res.cloudinary.com/lggmwg89/video/upload/v1794560406/Tam-Main-Hero-Video.mp4`
+**Where it appears in code:** `index.html` — the `<source src="...">` inside the `<video>` tag in the hero section
+
+**To replace the video:** Upload a new video to Cloudinary → copy the new URL → update the `src` attribute in `index.html`.
+
+---
+
+## Section 3 — How the website is built
+
+**Technology:** Pure HTML, CSS, and JavaScript. No frameworks (no React, no Vue). No build tools (no npm, no webpack). The code runs directly in the browser exactly as written.
+
+**Why this approach:** It makes the site fast, simple to understand, and easy to hand off to any developer. There is no "build step" — you edit a file, push to GitHub, and it's live.
+
+**Pages:**
+
+| Page | File | Who can access |
 |---|---|---|
-| Navigation | `#nav` | Sticky, transparent on hero, bone background on scroll. Logo + links + cart icon + hamburger (mobile) |
-| Hero | `#home` | Full-screen video background (TAM-video.mp4), dark overlay, animated headline, CTA buttons |
-| Marquee ticker | — | Scrolling text strip: "wear.TAM · The Alisa Musa · Put Together Every Day · New Collection 2026" |
-| Collection / Shop | `#collection` | Product grid with filter tabs, product cards, hover effects, quick add |
-| Brand Story | `#story` | Split layout — image left, brand copy right, values, stat block |
-| Features Strip | — | 4 trust signals: delivery, returns, secure payment, size inclusive |
-| Lookbook | `#lookbook` | Horizontal drag-scroll gallery of 6 editorial cards |
-| Testimonials | `#testimonials` | 3 customer review cards |
-| Instagram / Socials | `#social` | 6-tile grid linking to Instagram, "Follow on Instagram" CTA |
-| Newsletter | — | Email signup form (frontend only, no service connected yet) |
-| Contact | `#contact` | Brand contact info + contact form (frontend only) |
-| Footer | — | Logo, links (Shop, Help, Brand), social icons, copyright |
+| Homepage / Shop | `index.html` | Everyone |
+| Account | `account.html` | Logged-in users only (redirects to home if not logged in) |
 
-### Overlays / Modals
+**JavaScript files:**
 
-| Component | Trigger | Description |
-|---|---|---|
-| Cart Drawer | Cart icon in nav | Slides in from right. Shows items, total, checkout button |
-| Product Modal | "View" button or product card | Full product detail: image gallery, size selector (standard or custom measurements), Add to Bag, Buy Now |
-| Page Loader | On every page load | Brand logo animation fades out after 1.2s |
+| File | What it does |
+|---|---|
+| `assets/js/config.js` | Holds the Supabase and Paystack keys. Loads first. |
+| `assets/js/main.js` | Everything on the homepage: cart, product modal, nav, animations, newsletter, contact form, story image crossfade, WhatsApp button |
+| `assets/js/auth.js` | Login, signup, password reset, session management, the auth modal |
+| `assets/js/checkout.js` | The checkout form, Paystack payment, saving orders to Supabase, sending order email via Formspree |
+| `assets/js/account.js` | The account page: profile, measurements, orders, sign out, delete account |
+
+**CSS files:**
+
+| File | What it does |
+|---|---|
+| `assets/css/style.css` | All styles for the homepage |
+| `assets/css/account.css` | All styles for the account page |
+
+**Images:** All in `assets/images/`. All in WebP format (smaller, faster than PNG/JPEG). The hero video is NOT here — it's on Cloudinary.
 
 ---
 
-## 5. JavaScript Modules (main.js)
+## Section 4 — How the key flows work
 
-All JS is vanilla, written in self-executing IIFEs (Immediately Invoked Function Expressions) to avoid global scope pollution.
+### 4.1 How a customer buys something
 
-| Module | What it does |
-|---|---|
-| `initLoader` | Fades out the loader overlay on window load |
-| `initCursor` | Custom cursor (dot + follower ring) — disabled on touch devices |
-| `initNav` | Scroll-aware nav (transparent to bone), hamburger menu, active link highlighting |
-| `initReveal` | IntersectionObserver — animates elements into view on scroll |
-| `cart` object | Full cart state: add, remove, save to localStorage, load from localStorage, updateUI |
-| `initCartDrawer` | Opens/closes cart drawer, handles item removal |
-| `initProductModal` | Opens product modal, populates with product data, handles image thumbnails, size selection |
-| `initSizeModeToggle` | Toggles between Standard Size and My Measurements panels |
-| `initFilterTabs` | Filters product grid by category |
-| `initLookbookDrag` | Mouse drag-to-scroll on lookbook strip |
-| `initNewsletter` | Newsletter form submit handler (currently just shows toast) |
-| `initContactForm` | Contact form submit handler (currently just shows toast) |
-| `showToast` | Utility — shows bottom notification toast |
-| `escapeHtml` | Security utility — sanitises strings before inserting into DOM |
+1. Customer browses the collection and clicks on a product card
+2. A product modal opens with photos, description, and size options
+3. Customer picks their size (UK sizing or custom measurements) and clicks "Add to Bag"
+4. The item appears in the cart drawer (top right bag icon)
+5. Customer clicks "Proceed to Payment"
+6. A checkout form opens asking for name, email, phone, delivery address, and size confirmation
+7. Customer clicks "Pay with Paystack" — the Paystack popup opens
+8. Customer pays (card / bank transfer / USSD / mobile money)
+9. On success:
+   - Order is saved to Supabase database
+   - Order notification email sent to hello@weartam.com
+   - Cart is cleared
+   - Success screen shown with order reference and WhatsApp button
 
-### Product Data
-Products are currently **hardcoded in `main.js`** as a `products` object (key = product ID). This is a placeholder. When Supabase is added, products will be fetched from the database.
+**Guest checkout:** No account required. Anyone can buy without creating an account.
 
-Current products:
-| ID | Name | Price | Category |
+---
+
+### 4.2 How the login and signup works
+
+**Signup:**
+1. Customer clicks the person icon in the top right nav
+2. The signup form appears (first visit) or login form (returning visitor)
+3. Customer fills in name, phone number, email, and password
+4. Clicks "Create Account"
+5. Supabase creates the account and sends a confirmation email via Resend
+6. The site shows a "Check your inbox" screen
+7. Customer clicks the link in the email → lands on their account page, logged in
+8. Their name, phone, and email are saved to the `profiles` table in Supabase
+
+**Login:**
+1. Customer clicks the person icon
+2. Enters email and password
+3. Supabase verifies credentials
+4. On success: modal closes, nav shows "Hi, [First Name]" in gold, session saved to browser
+5. Session persists across page refreshes — customer stays logged in until they sign out
+
+**Password reset:**
+1. Customer clicks "Forgot your password" on the login form
+2. Enters their email
+3. Supabase sends a reset email via Resend
+4. Customer clicks the link → lands on their account page with a "Change Password" form
+5. Sets new password → done
+
+**Email not confirmed:** If a customer tries to log in before confirming their email, the site automatically shows the "Check your inbox" screen with a resend button.
+
+---
+
+### 4.3 How the contact form works ("Let's Talk")
+
+1. Customer fills in name, email, and message
+2. Clicks "Send Message"
+3. The site sends the data to Formspree
+4. Formspree forwards it as an email to hello@weartam.com
+5. Customer sees a "Message sent" toast
+
+---
+
+### 4.4 How the newsletter works ("Stay in the Loop")
+
+1. Customer enters their email and clicks Subscribe
+2. The site sends the email to a Google Apps Script
+3. The script saves it to the TAM Newsletter Subscribers Google Sheet
+4. Customer sees "You're on the list" toast
+
+---
+
+### 4.5 How orders are tracked
+
+Every order saved to Supabase has a `status` field. The possible statuses are:
+
+| Status | Meaning | Badge colour |
+|---|---|---|
+| `pending` | Order placed, payment received, not yet processed | Gold |
+| `confirmed` | TAM has confirmed the order and is preparing it | Blue |
+| `shipped` | Order has been shipped / sent out for delivery | Purple |
+| `delivered` | Customer has received the order | Green |
+| `cancelled` | Order was cancelled | Red |
+
+**How TAM updates the status:** Go to supabase.com → weartam project → Table Editor → orders table → find the order → click on the `status` field → type the new status → save.
+
+**How the customer sees it:** On their account page under the Orders tab, each order shows its current status with a colour-coded badge. The page automatically refreshes the order status every 60 seconds.
+
+---
+
+## Section 5 — Accounts and access
+
+This is a list of every account involved in running this website and what it controls.
+
+| Service | Account | What to do if access is lost |
+|---|---|---|
+| Netlify | eddy-global account | Recover via GitHub login |
+| GitHub | eddy-global/weartam | Standard GitHub account recovery |
+| Supabase | TechByEdwina's Org | Email recovery |
+| Cloudinary | edwinaeneabah@gmail.com | Gmail account recovery |
+| Paystack | Live account | Paystack support |
+| Resend | charisglobaltech account | Email recovery |
+| Formspree | Endpoint xzerbdbl | Formspree account recovery |
+| Google Sheets | Newsletter sheet owner | Google account recovery |
+| Spaceship | Domain registrar | Spaceship account recovery |
+
+---
+
+## Section 6 — The products (Alpha Collection)
+
+Products are currently hardcoded in `assets/js/main.js` as a `products` object. To change a product's name, price, or description, edit that file directly.
+
+| ID | Name | Price | Images used |
 |---|---|---|---|
-| 1 | The TAM Wide-Leg Trouser | ₦45,000 | sets |
-| 2 | TAM Trouser + Shirt Set | ₦62,000 | sets |
-| 3 | TAM Co-ord Set | ₦62,000 | sets |
-| 4 | The Bone Blazer | ₦75,000 | outerwear |
-| 5 | Gold Drape Midi | ₦52,000 | dresses |
-| 6 | Charcoal Corset Top | ₦22,000 | tops |
+| 1 | Becca Denim Set | ₦72,500 | becca-main.webp, becca-main.webp (hover) |
+| 2 | The Cherry Dress | ₦38,000 | red-dress-full.webp, red-dress-stylish.webp (hover) |
+| 3 | Kayla Suit Set - Skirt | ₦70,000 | kayla-suit-skirt-main.webp |
+| 4 | Lily Set | ₦49,000 | Lily-set-purple.webp, Lily-set-purple-02.webp (hover) |
+| 5 | Kayla Suit Set - Pants | ₦69,000 | kayla-suit-set-pants-main.webp |
+| 6 | Lily Set - Black | ₦49,000 | lily-set-black-main.webp |
 
-Products 1 and 2 use real photos. Products 3–6 use CSS gradient placeholders until real photos are provided.
-
-### Cart Persistence
-Cart is saved to `localStorage` under the key `tam_cart`. It persists across page refreshes. Cleared when items are removed.
-
----
-
-## 6. Size and Measurements System
-
-The product modal has a **two-mode size selector:**
-
-### Mode 1 — Standard Size
-Button grid: XS / S / M / L / XL / 2XL / 3XL
-
-### Mode 2 — My Measurements
-10 optional fields, all in centimetres:
-
-| Field | Nigerian tailor context |
-|---|---|
-| Bust | Fullest part of chest |
-| Waist | Narrowest part of torso |
-| Hips | Fullest part of hips/seat |
-| Height | Full body height |
-| Shoulder Width | Across back, shoulder to shoulder |
-| Sleeve Length | Shoulder to wrist |
-| Thigh | Fullest part of thigh |
-| Inseam | Crotch to floor |
-| Back Length | Nape of neck to waist |
-| Neck | Base of neck circumference |
-
-When a customer adds to bag with measurements, the cart item's "size" field is set to a string like:
-`"Custom (Bust: 92cm, Waist: 74cm, Hips: 98cm)"`
-
-This is currently stored in localStorage only. When Supabase is added, measurements should be saved to the user's profile for reuse.
+**To add a new product:**
+1. Add the product photos to `assets/images/` as WebP files
+2. Add a new entry to the `products` object in `main.js` (copy an existing one and update the values)
+3. Add a new product card `<div>` in `index.html` with the matching `data-id`
+4. Add the CSS background image rules for the new card in `style.css`
 
 ---
 
-## 7. Payments
+## Section 7 — Security
 
-Payment is handled via **Paystack payment link** — a static URL that Paystack generates which takes the customer to a hosted payment page.
+**What is safe to be public (already in the code):**
+- `SUPABASE_ANON_KEY` — this is a public key by design. It only works within Supabase's Row Level Security rules. It cannot access other users' data.
+- `PAYSTACK_PUBLIC_KEY` — this is a public key by design. It can only initiate payment popups, not access funds or transactions.
+- Cloudinary video URL — public by design, it's just a video file URL.
 
-### Current state
-All payment buttons ("Buy Now" in the modal and "Proceed to Payment" in the cart) link to `'#'` as a placeholder.
+**What must NEVER be in the code:**
+- Supabase service role key — only used in server-side Netlify Functions, stored as an environment variable in Netlify
+- Paystack secret key — only in the Paystack dashboard
+- Resend API key — only in Supabase SMTP settings
 
-### How to update
-1. Generate a payment link at [Paystack.com](https://Paystack.com)
-2. In `main.js`, update each product's `paymentLink` field:
-```js
-paymentLink: 'https://Paystack.com/pay/YOUR_LINK_HERE'
-```
-3. The cart's checkout button is in `cart.updateUI()` — update `checkoutBtn.href`
+**Security headers** (set in `netlify.toml`): The site sends security headers with every response — these prevent clickjacking, MIME sniffing, and restrict which external resources can load on the page.
 
-### Future plan
-Replace the static Paystack link with the **Paystack API** (inline checkout) so the payment modal opens directly on the site without redirecting. This requires a Paystack public key and a small server-side function (can be a Netlify Function).
+**Input sanitisation:** Every piece of user-provided text inserted into the page goes through an `escapeHtml()` function that prevents XSS (cross-site scripting) attacks.
 
 ---
 
-## 8. Contact Details (live)
+## Section 8 — What still needs to be done
 
-| Type | Value |
-|---|---|
-| Phone | +234 814 363 1189 |
-| WhatsApp | https://wa.me/2348143631189 |
-| Instagram | https://www.instagram.com/wear.tam |
-| Email | hello@weartam.com (placeholder — update with real email) |
-| Location | Abuja, Nigeria |
+### Immediate
+- [ ] Get transparent PNG or SVG export of the TAM logo for proper use in nav/footer
+- [ ] Add TikTok, Twitter/X, Facebook social handles to the footer links
+- [ ] Upgrade Formspree plan if orders exceed 50/month
+- [ ] Add Paystack webhook to auto-update order status after payment (currently manual)
 
-Social links for TikTok, Twitter/X, Facebook, and Pinterest are present in the HTML but still set to `href="#"` — update when handles are available.
+### Phase 2 — Admin panel
+The TAM team currently updates order statuses directly in the Supabase dashboard. A proper admin panel would let TAM:
+- See all orders in one place with filters
+- Update order status with one click
+- View customer details and measurements
+- Manage products (add, edit, remove) without touching code
 
----
-
-## 9. Hosting
-
-**Platform:** Netlify
-**Type:** Static site (no server-side rendering)
-**Deploy method:** Connect GitHub repo to Netlify, auto-deploys on push to main branch
-
-The site is pure static files so Netlify serves it directly with no build step needed.
-
----
-
-## 10. Planned Backend — Supabase
-
-This is the next major phase of development.
-
-### Why Supabase
-- Free tier handles TAM's current scale easily
-- Built-in authentication (email/password, Google OAuth)
-- PostgreSQL database with a clean API
-- Works perfectly with vanilla JS — no framework needed
-- Netlify + Supabase is a well-documented, production-proven stack
-
-### Supabase project setup steps
-1. Create account at [supabase.com](https://supabase.com)
-2. Create a new project (name: `weartam`, region: closest to Nigeria — likely EU West)
-3. Note down: `SUPABASE_URL` and `SUPABASE_ANON_KEY` (public key, safe to use in frontend JS)
-4. Create the tables below
-
-### Database Schema
-
-#### Table: `profiles`
-Extends Supabase's built-in `auth.users` table.
-```sql
-create table profiles (
-  id uuid references auth.users on delete cascade primary key,
-  full_name text,
-  phone text,
-  delivery_address text,
-  created_at timestamp with time zone default now()
-);
-```
-
-#### Table: `measurements`
-```sql
-create table measurements (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users on delete cascade,
-  bust numeric,
-  waist numeric,
-  hips numeric,
-  height numeric,
-  shoulder_width numeric,
-  sleeve_length numeric,
-  thigh numeric,
-  inseam numeric,
-  back_length numeric,
-  neck numeric,
-  updated_at timestamp with time zone default now()
-);
-```
-
-#### Table: `products`
-```sql
-create table products (
-  id serial primary key,
-  name text not null,
-  description text,
-  price numeric not null,
-  category text,
-  images text[],           -- array of image URLs (stored in Supabase Storage)
-  badge text,              -- 'new', 'bestseller', 'limited', 'sale', null
-  in_stock boolean default true,
-  sale_price numeric,      -- null if not on sale
-  created_at timestamp with time zone default now()
-);
-```
-
-#### Table: `orders`
-```sql
-create table orders (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users,   -- null for guest orders
-  customer_name text,
-  customer_email text,
-  customer_phone text,
-  items jsonb,             -- array of {product_id, name, size/measurements, price, qty}
-  total numeric,
-  delivery_address text,
-  status text default 'pending',  -- pending, processing, shipped, delivered
-  payment_ref text,        -- Paystack transaction reference
-  created_at timestamp with time zone default now()
-);
-```
-
-### Row Level Security (RLS)
-Enable RLS on all tables. Key policies:
-- Users can only read/write their own `profiles` and `measurements`
-- `products` table is publicly readable, writable only by admin role
-- `orders` are readable by the order's owner and by admin
+### Phase 3 — Growth features
+- Wishlist / saved items
+- Product reviews
+- Multiple collections support
+- Size guide modal with measurement diagram
+- Blog / editorial content
 
 ---
 
-## 11. Planned: Authentication (Phase 2)
+## Section 9 — How to make changes and deploy
 
-### What to build
-- Login modal (email + password)
-- Sign up modal (name, email, password)
-- Forgot password flow (Supabase sends reset email — needs live Netlify URL)
-- Persistent session (Supabase JS handles this with localStorage)
-- Nav updates: person icon shows "Log In" when logged out, user's first name when logged in
+**To update text, prices, or images:**
+1. Open the relevant file in a code editor (VS Code recommended)
+2. Make the change
+3. Open terminal in the project folder
+4. Run: `git add -A` then `git commit -m "Description of what you changed"` then `git push`
+5. Netlify deploys automatically within 30 seconds
 
-### New files needed
-```
-assets/js/auth.js       # Supabase auth logic
-assets/js/supabase.js   # Supabase client init (import from CDN)
-account.html            # User account page
-```
+**To update Supabase settings:** Log in to supabase.com → weartam project
 
-### Auth flow
-```
-User clicks "Log In" in nav
-  → Modal opens
-  → Enters email + password
-  → Supabase.auth.signInWithPassword()
-  → On success: modal closes, nav updates, measurements pre-fill
-  → Session stored in localStorage by Supabase client
-  → On page refresh: session auto-restored
-```
+**To update DNS:** Log in to Spaceship → weartam.com → DNS Management
+
+**To replace the hero video:**
+1. Upload new video to Cloudinary (edwinaeneabah@gmail.com account)
+2. Copy the new video URL from Cloudinary
+3. In `index.html`, find the `<source src="...">` inside the hero `<video>` tag
+4. Replace the URL with the new one
+5. Push to GitHub
 
 ---
 
-## 12. Planned: Admin Panel (Phase 3)
-
-A separate password-protected dashboard for the brand owner.
-
-### Access
-- Separate URL: `weartam.netlify.app/admin`
-- Protected by Supabase auth with an `is_admin` flag on the user's profile
-- Only accounts with `is_admin = true` can access it
-
-### Admin panel features
-
-#### Products manager
-- View all products in a table
-- Add new product: upload photos (to Supabase Storage), set name, price, category, badge, stock status
-- Edit existing product
-- Toggle in stock / out of stock
-- Set sale price (triggers "On Sale" badge on the storefront)
-- Delete product
-
-#### Orders manager
-- View all incoming orders
-- Filter by status (pending, processing, shipped, delivered)
-- Click an order to see full details: customer info, items, measurements if provided, delivery address
-- Update order status (triggers status change in DB)
-
-#### Customers manager
-- View all registered users
-- See their saved measurements
-- View their order history
-
-#### Content manager (optional later)
-- Update hero video
-- Update lookbook photos
-
-### New files needed
-```
-admin/
-├── index.html          # Admin dashboard
-├── products.html       # Products management
-├── orders.html         # Orders management
-├── customers.html      # Customers management
-└── assets/
-    ├── admin.css
-    └── admin.js
-```
-
----
-
-## 13. Pending / To-Do List
-
-### Immediate (before or just after launch)
-- [ ] Replace placeholder email `hello@weartam.com` with real email address
-- [ ] Add Paystack payment link to all products
-- [ ] Add TikTok, Twitter/X, Facebook handles to social icon links
-- [ ] Get logo exported as transparent PNG or SVG for proper use in nav/footer
-- [ ] Replace product gradient placeholders (products 3–6) with real photos
-
-### Phase 2 — Backend
-- [ ] Create Supabase project
-- [ ] Set up database tables (schema above)
-- [ ] Add `supabase-js` client via CDN
-- [ ] Build login/signup modals
-- [ ] Wire auth to nav (person icon)
-- [ ] Build account page (`account.html`)
-- [ ] Save/load measurements from Supabase
-- [ ] Move products from hardcoded JS to Supabase products table
-- [ ] Save orders to Supabase on checkout
-
-### Phase 3 — Admin Panel
-- [ ] Build admin dashboard
-- [ ] Products CRUD with image upload to Supabase Storage
-- [ ] Orders management with status updates
-- [ ] Customers view
-
-### Phase 4 — Payments upgrade
-- [ ] Replace Paystack static link with Paystack inline checkout (API)
-- [ ] Save Paystack transaction reference to orders table
-- [ ] Auto-update order status on successful payment webhook
-
-### Nice to have (future)
-- [ ] Wishlist / saved items
-- [ ] Email notifications on order (via Supabase Edge Functions + Resend)
-- [ ] Size guide modal with measurement diagram
-- [ ] Blog / editorial content section
-- [ ] Multi-image upload per product (currently single image)
-- [ ] Search functionality
-
----
-
-## 14. Key Design Decisions Made
-
-| Decision | Choice | Reason |
-|---|---|---|
-| Framework | None (vanilla JS) | Fastest load, no build tools, easy to hand off |
-| Single page vs multi page | Single page | Premium feel, smooth scroll, faster for MVP |
-| Payment | Paystack link | Nigerian payment processor, no backend needed for MVP |
-| Logo display | CSS text logo | Real logo file has white background, transparent export needed |
-| Size system | Dual mode (standard + custom measurements) | Serves both ready-to-wear and made-to-order customers |
-| Hosting | Netlify | Free, fast, auto-deploys from Git |
-| Backend (planned) | Supabase | Free tier, built-in auth, works with vanilla JS, Nigerian-friendly |
-| Cursor | Custom CSS cursor | Elevates the editorial fashion feel on desktop |
-| Hero | Video background with dark overlay | More premium and immersive than static image |
-
----
-
-## 15. External Dependencies
-
-All loaded via CDN — no npm, no package.json.
-
-| Dependency | Version | URL | Used for |
-|---|---|---|---|
-| Google Fonts | Latest | fonts.googleapis.com | Cormorant Garamond, DM Sans, Dancing Script |
-| Font Awesome | 6.5.0 | cdnjs.cloudflare.com | All icons throughout the site |
-| Supabase JS | TBD | cdn.jsdelivr.net/npm/@supabase/supabase-js | To be added in Phase 2 |
-
----
-
-## 16. Browser and Device Support
-
-| Target | Support level |
-|---|---|
-| Chrome (latest) | Full |
-| Firefox (latest) | Full |
-| Safari (latest) | Full |
-| Edge (latest) | Full |
-| Mobile Chrome (Android) | Full — mobile-first CSS |
-| Mobile Safari (iOS) | Full — uses `dvh` units for proper viewport height |
-| IE 11 | Not supported |
-
-Custom cursor is automatically disabled on touch/mobile devices via `matchMedia('(pointer: coarse)')`.
-
----
-
-## 17. Performance Notes
-
-- Fonts loaded with `preconnect` hints for speed
-- Images should be optimised to WebP format when real photos are added
-- Hero video should be compressed — target under 10MB for fast load
-- No JavaScript frameworks means no bundle overhead
-- Netlify CDN handles global delivery
-
----
-
-*Document last updated: October 2026*
-*Prepared for wear.TAM — The Alisa Musa*
+*wear.TAM — The Alisa Musa. Put Together Every Day.*
+*Document prepared July 2026*

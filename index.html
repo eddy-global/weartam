@@ -659,7 +659,10 @@
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-drawer-header">
       <h3>Your Bag <span id="cartDrawerCount">(0)</span></h3>
-      <button class="cart-close" id="cartClose" aria-label="Close cart"><i class="fas fa-xmark"></i></button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="cart-clear-btn" id="cartClearBtn" aria-label="Clear bag" title="Clear bag" style="display:none;font-size:0.68rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#888;background:none;border:none;padding:4px 8px;cursor:pointer;">Clear all</button>
+        <button class="cart-close" id="cartClose" aria-label="Close cart"><i class="fas fa-xmark"></i></button>
+      </div>
     </div>
     <div class="cart-drawer-body" id="cartBody">
       <div class="cart-empty" id="cartEmpty">
