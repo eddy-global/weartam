@@ -1,6 +1,5 @@
 [build]
   publish = "."
-  functions = "netlify/functions"
 
 # ─── CLEAN URLs ────────────────────────────────────────
 # /home → index.html (canonical homepage)

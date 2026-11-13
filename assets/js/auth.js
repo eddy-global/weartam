@@ -33,28 +33,16 @@ async function initAuth() {
 }
 
 /* ─── SIGN UP ─────────────────────────────────────────── */
-async function signUp(fullName, phone, email, password) {
+async function signUp(fullName, email, password) {
   const { data, error } = await db.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: fullName, phone },
-      // Land on /account after the user clicks the confirmation link
-      emailRedirectTo: SITE_URL + '/account'
+      data: { full_name: fullName }
     }
   })
 
   if (error) throw error
-
-  // Also save phone to profiles table immediately
-  if (data?.user) {
-    await db.from('profiles').upsert({
-      id:         data.user.id,
-      full_name:  fullName,
-      phone:      phone
-    })
-  }
-
   return data
 }
 
@@ -74,7 +62,7 @@ async function signOut() {
 /* ─── PASSWORD RESET ──────────────────────────────────── */
 async function sendPasswordReset(email) {
   const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: SITE_URL + '/account'
+    redirectTo: 'https://weartam.com/account'
   })
   if (error) throw error
 }
@@ -86,12 +74,10 @@ function onSignedIn(user) {
   loadUserMeasurements()
   // Welcome back toast — only on landing page, only once per session
   if (!sessionStorage.getItem('tam_welcomed') && window.location.pathname.includes('index')) {
-    // Set the flag immediately (before the timeout) so two rapid onAuthStateChange
-    // fires (INITIAL_SESSION restore + change listener) can't both pass the guard
-    sessionStorage.setItem('tam_welcomed', '1')
     const name = user.user_metadata?.full_name?.split(' ')[0] || ''
     setTimeout(() => {
       showToast('Welcome back' + (name ? ', ' + name : '') + ' 👋')
+      sessionStorage.setItem('tam_welcomed', '1')
     }, 1500)
   }
 }
@@ -275,20 +261,9 @@ function initAuthModal() {
     e.preventDefault()
     const btn      = signupForm.querySelector('button[type="submit"]')
     const fullName = signupForm.querySelector('#signupName').value.trim()
-    const phone    = signupForm.querySelector('#signupPhone').value.trim()
     const email    = signupForm.querySelector('#signupEmail').value.trim()
     const password = signupForm.querySelector('#signupPassword').value
     const confirm  = signupForm.querySelector('#signupConfirm').value
-
-    if (!fullName) {
-      showAuthError('signupError', 'Please enter your full name.')
-      return
-    }
-
-    if (!phone) {
-      showAuthError('signupError', 'Please enter your phone number.')
-      return
-    }
 
     if (password !== confirm) {
       showAuthError('signupError', 'Passwords do not match.')
@@ -304,7 +279,7 @@ function initAuthModal() {
     clearAuthError('signupError')
 
     try {
-      await signUp(fullName, phone, email, password)
+      await signUp(fullName, email, password)
       // Store email for resend button before resetting form
       signupForm.dataset.lastEmail = email
       // Show full confirmation panel instead of inline banner
@@ -418,7 +393,7 @@ function friendlyError(msg) {
 
 /* ─── INIT ────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  initAuth().catch(err => console.error('Auth init failed:', err))
+  initAuth()
   initAuthModal()
   initPasswordToggles()
 })
