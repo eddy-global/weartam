@@ -1874,10 +1874,6 @@ ul { list-style: none; }
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     position: relative;
   }
-  .modal-main-img {
-    aspect-ratio: 4/3;
-    max-height: 52vw;
-  }
   .modal-details { padding: 24px 20px 40px; overflow-y: visible; }
   .measurements-grid { grid-template-columns: 1fr 1fr; }
   .size-mode-btn { font-size: 0.65rem; padding: 8px 8px; }

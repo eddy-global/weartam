@@ -191,7 +191,7 @@ const products = {
     price: '₦49,000',
     priceRaw: 49000,
     category: 'dresses',
-    description: 'From the Alpha Collection by wear.TAM. A striking set designed to make you unforgettable. Available in black and purple. Crafted with precision and intention.',
+    description: 'From the Alpha Collection by wear.TAM. A striking set designed to make you unforgettable. Available in purple and black. Crafted with precision and intention. Want a different colour? Chat with us on WhatsApp.',
     gradient: "url('assets/images/Lily-set-purple.webp') center/cover no-repeat",
     gradientHover: "url('assets/images/Lily-set-purple-02.webp') center/cover no-repeat",
     extraImages: [
