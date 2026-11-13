@@ -123,9 +123,6 @@ function renderCheckoutSummary() {
       <span>Total</span>
       <strong id="checkoutTotalDisplay">₦${total.toLocaleString('en-NG')}</strong>
     </div>
-    ${total < 100000
-      ? '<p class="checkout-delivery-note"><i class="fas fa-truck"></i> Delivery fee applies. Free delivery on orders above ₦100,000.</p>'
-      : '<p class="checkout-delivery-note free"><i class="fas fa-truck"></i> Free delivery on this order!</p>'}
   `
 }
 
@@ -139,13 +136,6 @@ function changeQty(index, delta) {
   const total = checkoutItems.reduce((sum, i) => sum + (i.priceRaw * (i.qty || 1)), 0)
   const totalEl = document.getElementById('checkoutTotalDisplay')
   if (totalEl) totalEl.textContent = '₦' + total.toLocaleString('en-NG')
-  const deliveryEl = document.querySelector('.checkout-delivery-note')
-  if (deliveryEl) {
-    deliveryEl.className = total < 100000 ? 'checkout-delivery-note' : 'checkout-delivery-note free'
-    deliveryEl.innerHTML = total < 100000
-      ? '<i class="fas fa-truck"></i> Delivery fee applies. Free delivery on orders above ₦100,000.'
-      : '<i class="fas fa-truck"></i> Free delivery on this order!'
-  }
 }
 
 /* ─── PRE-FILL FROM USER ──────────────────────────────── */

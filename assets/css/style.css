@@ -1461,9 +1461,7 @@ ul { list-style: none; }
 }
 
 .modal-thumbs {
-  display: flex; gap: 8px;
-  padding: 12px;
-  background: rgba(245,245,240,0.8);
+  display: none; /* hidden until colour variants are added — re-enable alongside JS thumbnail block */
 }
 
 .modal-thumb {
@@ -1861,12 +1859,32 @@ ul { list-style: none; }
   /* Cart drawer */
   .cart-drawer { width: 100%; }
 
-  /* Modal */
-  .modal-inner { grid-template-columns: 1fr; max-height: 95dvh; }
-  .modal-gallery { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-  .modal-details { padding: 28px 20px; }
+  /* Modal — bottom sheet on mobile */
+  .product-modal {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal-inner {
+    grid-template-columns: 1fr;
+    max-height: 92dvh;
+    overflow-y: auto;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .modal-gallery {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    position: relative;
+  }
+  .modal-main-img {
+    aspect-ratio: 4/3;
+    max-height: 52vw;
+  }
+  .modal-details { padding: 24px 20px 40px; overflow-y: visible; }
   .measurements-grid { grid-template-columns: 1fr 1fr; }
   .size-mode-btn { font-size: 0.65rem; padding: 8px 8px; }
+  .modal-thumbs { padding: 10px 12px; }
+  .modal-thumb { width: 48px; height: 60px; }
+  .modal-title { font-size: 1.4rem; }
+  .modal-price { font-size: 1.1rem; }
 }
 
 @media (max-width: 480px) {

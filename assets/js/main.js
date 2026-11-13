@@ -452,6 +452,7 @@ const cart = {
     }
 
     // Populate thumbnails and auto-select first
+    /* ── THUMBNAILS HIDDEN (restore when more colour variants are ready) ──
     if (thumbsEl) {
       thumbsEl.innerHTML = ''
       const thumbImages = [product.gradient, product.gradientHover, ...(product.extraImages || [])]
@@ -474,6 +475,11 @@ const cart = {
       // Auto-load first image immediately
       setMainImage(thumbImages[0])
     }
+    ── END THUMBNAILS ── */
+
+    // Always load the main image directly (no thumbnails for now)
+    if (thumbsEl) thumbsEl.innerHTML = ''
+    setMainImage(product.gradient)
 
     if (titleEl) titleEl.textContent = product.name;
     if (priceEl) priceEl.textContent = product.price;
