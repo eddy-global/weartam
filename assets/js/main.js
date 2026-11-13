@@ -844,50 +844,6 @@ const cart = {
   // Parallax disabled — hero uses video background
 })();
 
-/* ─── HERO VIDEO LOADER ──────────────────────────────── */
-(function initHeroVideo() {
-  const video = document.getElementById('heroVideo')
-  if (!video) return
-
-  const source = video.querySelector('source[data-src]')
-  if (!source) return
-
-  function loadAndPlay() {
-    if (source.getAttribute('src')) return // already loaded
-    source.src = source.getAttribute('data-src')
-    video.load()
-    // play() returns a promise — catch rejection silently (mobile low-power mode etc.)
-    const playPromise = video.play()
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Autoplay blocked — video stays as static poster frame, which is fine
-      })
-    }
-  }
-
-  // On desktop/fast connections: load immediately on DOMContentLoaded
-  // On mobile: browsers require a user gesture OR the page to be fully idle
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadAndPlay)
-  } else {
-    loadAndPlay()
-  }
-
-  // Also try again after full page load (catches slow mobile connections)
-  window.addEventListener('load', loadAndPlay, { once: true })
-
-  // Retry on first user interaction (covers strict mobile autoplay policies)
-  const retryOnInteraction = () => {
-    if (video.paused) {
-      video.play().catch(() => {})
-    }
-    document.removeEventListener('touchstart', retryOnInteraction)
-    document.removeEventListener('click', retryOnInteraction)
-  }
-  document.addEventListener('touchstart', retryOnInteraction, { passive: true })
-  document.addEventListener('click', retryOnInteraction, { once: true })
-})()
-
 /* ─── TOAST HELPER ───────────────────────────────────── */
 function showToast(message, duration = 3000) {
   const toast = document.getElementById('toast');
