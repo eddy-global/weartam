@@ -33,16 +33,26 @@ async function initAuth() {
 }
 
 /* ─── SIGN UP ─────────────────────────────────────────── */
-async function signUp(fullName, email, password) {
+async function signUp(fullName, phone, email, password) {
   const { data, error } = await db.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: fullName }
+      data: { full_name: fullName, phone }
     }
   })
 
   if (error) throw error
+
+  // Also save phone to profiles table immediately
+  if (data?.user) {
+    await db.from('profiles').upsert({
+      id:         data.user.id,
+      full_name:  fullName,
+      phone:      phone
+    })
+  }
+
   return data
 }
 
@@ -261,9 +271,20 @@ function initAuthModal() {
     e.preventDefault()
     const btn      = signupForm.querySelector('button[type="submit"]')
     const fullName = signupForm.querySelector('#signupName').value.trim()
+    const phone    = signupForm.querySelector('#signupPhone').value.trim()
     const email    = signupForm.querySelector('#signupEmail').value.trim()
     const password = signupForm.querySelector('#signupPassword').value
     const confirm  = signupForm.querySelector('#signupConfirm').value
+
+    if (!fullName) {
+      showAuthError('signupError', 'Please enter your full name.')
+      return
+    }
+
+    if (!phone) {
+      showAuthError('signupError', 'Please enter your phone number.')
+      return
+    }
 
     if (password !== confirm) {
       showAuthError('signupError', 'Passwords do not match.')
@@ -279,7 +300,7 @@ function initAuthModal() {
     clearAuthError('signupError')
 
     try {
-      await signUp(fullName, email, password)
+      await signUp(fullName, phone, email, password)
       // Store email for resend button before resetting form
       signupForm.dataset.lastEmail = email
       // Show full confirmation panel instead of inline banner
