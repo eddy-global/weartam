@@ -1,0 +1,52 @@
+[build]
+  publish = "."
+
+# ─── CLEAN URLs ────────────────────────────────────────
+# /home → index.html (canonical homepage)
+[[redirects]]
+  from   = "/home"
+  to     = "/index.html"
+  status = 200
+
+# /account → account.html
+[[redirects]]
+  from   = "/account"
+  to     = "/account.html"
+  status = 200
+
+# Remove .html extension from any direct .html URL
+[[redirects]]
+  from   = "/index.html"
+  to     = "/"
+  status = 301
+  force  = true
+
+[[redirects]]
+  from   = "/account.html"
+  to     = "/account"
+  status = 301
+  force  = true
+
+# ─── HTTPS ENFORCE ─────────────────────────────────────
+[[redirects]]
+  from   = "http://weartam.com/*"
+  to     = "https://weartam.com/:splat"
+  status = 301
+  force  = true
+
+[[redirects]]
+  from   = "http://www.weartam.com/*"
+  to     = "https://weartam.com/:splat"
+  status = 301
+  force  = true
+
+# ─── SECURITY HEADERS ──────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.paystack.co https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://script.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://res.cloudinary.com; media-src 'self' https://res.cloudinary.com; connect-src 'self' https://kaxhvzuzksntrlobktqi.supabase.co https://formspree.io https://script.google.com; frame-src https://js.paystack.co https://checkout.paystack.com; upgrade-insecure-requests"

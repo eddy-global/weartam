@@ -62,7 +62,7 @@ async function signOut() {
 /* ─── PASSWORD RESET ──────────────────────────────────── */
 async function sendPasswordReset(email) {
   const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://weartam.com/account.html'
+    redirectTo: 'https://weartam.com/account'
   })
   if (error) throw error
 }
@@ -208,7 +208,7 @@ function initAuthModal() {
   // First-time visitors see Sign Up first, returning users see Log In
   authNavBtn?.addEventListener('click', () => {
     if (authNavBtn.dataset.state === 'signed-in') {
-      window.location.href = 'account.html'
+      window.location.href = '/account'
     } else {
       // If user has visited before (has localStorage flag), show login — otherwise signup
       const returning = localStorage.getItem('tam_returning')

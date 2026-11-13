@@ -25,7 +25,7 @@ async function initAccountPage() {
 
   if (!session?.user) {
     // Not logged in — redirect to home
-    window.location.href = 'index.html'
+    window.location.href = '/'
     return
   }
 
@@ -46,7 +46,7 @@ function showAccountContent() {
 
   // Handle auth state changes (e.g. logout from another tab)
   db.auth.onAuthStateChange((_event, session) => {
-    if (!session) window.location.href = 'index.html'
+    if (!session) window.location.href = '/'
   })
 }
 
@@ -341,7 +341,7 @@ async function loadOrders() {
 function initSignOut() {
   document.getElementById('signOutBtn')?.addEventListener('click', async () => {
     await db.auth.signOut()
-    window.location.href = 'index.html'
+    window.location.href = '/'
   })
 }
 
