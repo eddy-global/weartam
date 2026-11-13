@@ -783,6 +783,33 @@ const cart = {
   })
 })();
 
+/* ─── STORY IMAGE CROSSFADE ──────────────────────────── */
+(function initStorySlider() {
+  const container = document.getElementById('storyImg')
+  if (!container) return
+
+  const images = [
+    "url('assets/images/our-story-main.webp') center/cover no-repeat",
+    "url('assets/images/tam-bag.webp') center/cover no-repeat"
+  ]
+
+  // Build two slide divs
+  images.forEach((bg, i) => {
+    const slide = document.createElement('div')
+    slide.className = 'story-slide ' + (i === 0 ? 'active' : 'inactive')
+    slide.style.background = bg
+    container.appendChild(slide)
+  })
+
+  let current = 0
+  setInterval(() => {
+    const slides = container.querySelectorAll('.story-slide')
+    slides[current].className = 'story-slide inactive'
+    current = (current + 1) % slides.length
+    slides[current].className = 'story-slide active'
+  }, 4000) // swap every 4 seconds
+})()
+
 /* ─── BACK TO TOP ─────────────────────────────────────── */
 (function initBackToTop() {
   const btn = document.getElementById('backToTop');
