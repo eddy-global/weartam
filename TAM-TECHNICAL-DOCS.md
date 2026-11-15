@@ -76,7 +76,7 @@ Free tier: 50 submissions/month. Upgrade if orders exceed this.
 Saves subscriber emails to the TAM Newsletter Subscribers Google Sheet when someone signs up.
 
 Script URL in main.js:
-https://script.google.com/macros/s/AKfycbzaeCWndVSE7CZY8uSZJq1lKxI80M8Iwe_jcMkSAzU3xw2JTgLw9l6f8lLErEQ75eEO/exec
+https://script.google.com/macros/s/AKfycbwBR-O-TjmGQH96Y6FQeO3tXRLFzDLB7dk-hZy_mGR3ngvmhcn5rf-MTy0j9ojjqCaE/exec
 
 Uses mode: no-cors so no response can be read back. Check the Sheet periodically to confirm emails are coming in.
 

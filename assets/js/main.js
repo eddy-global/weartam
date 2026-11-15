@@ -697,7 +697,7 @@ const cart = {
   const form = document.getElementById('newsletterForm')
   if (!form) return
 
-  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzaeCWndVSE7CZY8uSZJq1lKxI80M8Iwe_jcMkSAzU3xw2JTgLw9l6f8lLErEQ75eEO/exec'
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwBR-O-TjmGQH96Y6FQeO3tXRLFzDLB7dk-hZy_mGR3ngvmhcn5rf-MTy0j9ojjqCaE/exec'
 
   form.addEventListener('submit', async e => {
     e.preventDefault()
