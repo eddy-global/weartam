@@ -799,21 +799,38 @@ const cart = {
     "url('assets/images/tam-bag.webp') center/cover no-repeat"
   ]
 
-  // Build two slide divs
-  images.forEach((bg, i) => {
-    const slide = document.createElement('div')
-    slide.className = 'story-slide ' + (i === 0 ? 'active' : 'inactive')
-    slide.style.background = bg
-    container.appendChild(slide)
-  })
+  let started = false
 
-  let current = 0
-  setInterval(() => {
-    const slides = container.querySelectorAll('.story-slide')
-    slides[current].className = 'story-slide inactive'
-    current = (current + 1) % slides.length
-    slides[current].className = 'story-slide active'
-  }, 4000) // swap every 4 seconds
+  function startSlider() {
+    if (started) return
+    started = true
+
+    // Build two slide divs only when section is visible
+    images.forEach((bg, i) => {
+      const slide = document.createElement('div')
+      slide.className = 'story-slide ' + (i === 0 ? 'active' : 'inactive')
+      slide.style.background = bg
+      container.appendChild(slide)
+    })
+
+    let current = 0
+    setInterval(() => {
+      const slides = container.querySelectorAll('.story-slide')
+      slides[current].className = 'story-slide inactive'
+      current = (current + 1) % slides.length
+      slides[current].className = 'story-slide active'
+    }, 4000)
+  }
+
+  // Only load images when story section scrolls into view
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      startSlider()
+      observer.disconnect()
+    }
+  }, { rootMargin: '200px' })
+
+  observer.observe(container)
 })()
 
 /* ─── BACK TO TOP ─────────────────────────────────────── */
